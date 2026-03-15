@@ -1,19 +1,19 @@
 <!-- shared footer, included on every page -->
-<footer class="sgcar-footer mt-auto" role="contentinfo">
+<footer class="sgcar-footer mt-auto">
     <div class="container">
         <div class="row gy-4">
 
             <!-- brand blurb -->
             <div class="col-12 col-md-4">
-                <h5 class="footer-brand">
+                <p class="footer-brand">
                     <span class="brand-sg">sg</span><span class="brand-car">Car</span>
-                </h5>
+                </p>
                 <p class="footer-tagline">Singapore's trusted platform for buying and selling cars.</p>
             </div>
 
             <!-- quick links -->
             <div class="col-6 col-md-2">
-                <h6 class="footer-heading">Quick Links</h6>
+                <p class="footer-heading">Quick Links</p>
                 <ul class="footer-links list-unstyled">
                     <li><a href="<?= $root ?>index.php">Home</a></li>
                     <li><a href="<?= $root ?>listings.php">Browse Cars</a></li>
@@ -25,7 +25,7 @@
 
             <!-- account links -->
             <div class="col-6 col-md-2">
-                <h6 class="footer-heading">Account</h6>
+                <p class="footer-heading">Account</p>
                 <ul class="footer-links list-unstyled">
                     <li><a href="<?= $root ?>register.php">Register</a></li>
                     <li><a href="<?= $root ?>login.php">Login</a></li>
@@ -35,7 +35,7 @@
 
             <!-- contact details — using <address> is the semantically correct tag for this -->
             <div class="col-12 col-md-4">
-                <h6 class="footer-heading">Contact</h6>
+                <p class="footer-heading">Contact</p>
                 <address class="footer-address">
                     <p>
                         <span class="material-icons footer-icon" aria-hidden="true">location_on</span>
@@ -44,6 +44,10 @@
                     <p>
                         <span class="material-icons footer-icon" aria-hidden="true">email</span>
                         <a href="mailto:enquiry@sgcar.com">enquiry@sgcar.com</a>
+                    </p>
+                    <p>
+                        <span class="material-icons footer-icon" aria-hidden="true">phone</span>
+                        +65 6850 3346
                     </p>
                 </address>
             </div>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // shows all buyer enquiries. admins can delete them, for example to remove spam
 session_start();
 $root      = "../";
@@ -96,27 +96,14 @@ $conn->close();
                                                     </a>
                                                 </td>
                                                 <td class="align-middle">
-                                                    <span class="fw-semibold"><?= htmlspecialchars($e['sender_name']) ?></span><br>
-                                                    <a href="mailto:<?= htmlspecialchars($e['sender_email']) ?>" class="text-muted small">
-                                                        <?= htmlspecialchars($e['sender_email']) ?>
+                                                    <span class="fw-semibold"><?= htmlspecialchars($e['sender_name'] ?? '') ?></span><br>
+                                                    <a href="mailto:<?= htmlspecialchars($e['sender_email'] ?? '') ?>" class="text-muted small">
+                                                        <?= htmlspecialchars($e['sender_email'] ?? '') ?>
                                                     </a>
                                                 </td>
-                                                <td class="align-middle" style="max-width:300px;">
-                                                    <!-- short preview with a read more link for long messages -->
-                                                    <div>
-                                                        <?php $preview = mb_substr($e['message'], 0, 100); ?>
-                                                        <span class="enquiry-preview small text-muted">
-                                                            <?= htmlspecialchars($preview) ?><?= mb_strlen($e['message']) > 100 ? '…' : '' ?>
-                                                        </span>
-                                                        <?php if (mb_strlen($e['message']) > 100): ?>
-                                                            <a class="d-block small" href="#" onclick="
-                                                                this.previousElementSibling.textContent = this.dataset.full;
-                                                                this.remove(); return false;"
-                                                               data-full="<?= htmlspecialchars($e['message']) ?>">
-                                                                Read more
-                                                            </a>
-                                                        <?php endif; ?>
-                                                    </div>
+                                                <td class="align-middle small text-muted" style="max-width:300px;">
+                                                    <?php $msg = $e['message'] ?? ''; ?>
+                                                    <?= htmlspecialchars(mb_substr($msg, 0, 120)) ?><?= mb_strlen($msg) > 120 ? '…' : '' ?>
                                                 </td>
                                                 <td class="align-middle text-muted small text-nowrap">
                                                     <?= date('d M Y', strtotime($e['created_at'])) ?>

@@ -2,7 +2,7 @@
 // shows all cars the user has saved/favourited
 session_start();
 $root      = "";
-$pageTitle = "Saved Cars — sgCar";
+$pageTitle = "Saved Cars - sgCar";
 
 include "inc/auth.inc.php";
 
@@ -10,21 +10,10 @@ $user_id = (int)$_SESSION['user_id'];
 
 include "inc/db.inc.php";
 
-// fetch saved cars with the car details and primary image
 $stmt = $conn->prepare("
-    SELECT
-        c.car_id,
-        c.brand,
-        c.model,
-        c.year,
-        c.price,
-        c.mileage,
-        c.transmission,
-        c.fuel_type,
-        c.type,
-        c.status,
-        ci.image_path AS primary_image,
-        sc.saved_at
+    SELECT c.car_id, c.brand, c.model, c.year, c.price, c.mileage,
+           c.transmission, c.fuel_type, c.type, c.status,
+           ci.image_path AS primary_image, sc.saved_at
     FROM saved_cars sc
     JOIN cars c ON sc.car_id = c.car_id
     LEFT JOIN car_images ci ON c.car_id = ci.car_id AND ci.is_primary = 1
@@ -35,7 +24,6 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $savedCars = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -68,8 +56,7 @@ $conn->close();
         <div class="container py-4">
 
             <p class="text-muted small mb-3">
-                <strong><?= count($savedCars) ?></strong>
-                saved car<?= count($savedCars) !== 1 ? 's' : '' ?>
+                <strong><?= count($savedCars) ?></strong> saved car<?= count($savedCars) !== 1 ? 's' : '' ?>
             </p>
 
             <?php if (empty($savedCars)): ?>
@@ -82,17 +69,17 @@ $conn->close();
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
                     <?php foreach ($savedCars as $car): ?>
                         <?php
-                        $imgSrc  = !empty($car['primary_image'])
-                            ? htmlspecialchars($car['primary_image'])
+                        $carTitle = $car['year'] . ' ' . $car['brand'] . ' ' . $car['model'];
+                        $imgSrc   = !empty($car['primary_image'])
+                            ? $car['primary_image']
                             : 'https://placehold.co/800x500/1e293b/94a3b8?text=No+Photo';
-                        $altText = htmlspecialchars($car['year'] . ' ' . $car['brand'] . ' ' . $car['model']);
-                        $isSold  = ($car['status'] !== 'available');
+                        $isSold = ($car['status'] !== 'available');
                         ?>
                         <article class="col">
                             <div class="car-card card h-100 <?= $isSold ? 'opacity-75' : '' ?>">
                                 <div class="car-card-img-wrap">
-                                    <img src="<?= $imgSrc ?>"
-                                         alt="<?= $altText ?>"
+                                    <img src="<?= htmlspecialchars($imgSrc) ?>"
+                                         alt="<?= htmlspecialchars($carTitle) ?>"
                                          class="car-card-img"
                                          loading="lazy">
                                     <span class="car-type-badge"><?= htmlspecialchars($car['type']) ?></span>
@@ -101,9 +88,7 @@ $conn->close();
                                     <?php endif; ?>
                                 </div>
                                 <div class="card-body">
-                                    <h2 class="car-card-title">
-                                        <?= htmlspecialchars($car['year'] . ' ' . $car['brand'] . ' ' . $car['model']) ?>
-                                    </h2>
+                                    <h2 class="car-card-title"><?= htmlspecialchars($carTitle) ?></h2>
                                     <p class="car-card-price">S$ <?= number_format($car['price']) ?></p>
                                     <div class="car-card-specs">
                                         <span>
@@ -128,14 +113,10 @@ $conn->close();
                                         <a href="car-detail.php?id=<?= (int)$car['car_id'] ?>"
                                            class="btn btn-sgcar flex-fill">View</a>
                                     <?php endif; ?>
-                                    <!-- unsave button -->
                                     <form method="post" action="process-save-car.php" class="flex-fill">
                                         <input type="hidden" name="car_id" value="<?= (int)$car['car_id'] ?>">
                                         <input type="hidden" name="redirect" value="saved-cars.php">
-                                        <button type="submit" class="btn btn-outline-secondary w-100">
-                                            <span class="material-icons btn-icon" style="font-size:1rem;" aria-hidden="true">heart_broken</span>
-                                            Remove
-                                        </button>
+                                        <button type="submit" class="btn btn-outline-secondary w-100">Remove</button>
                                     </form>
                                 </div>
                             </div>
@@ -145,7 +126,6 @@ $conn->close();
             <?php endif; ?>
 
         </div>
-
     </main>
 
     <?php include "inc/footer.inc.php"; ?>

@@ -50,7 +50,7 @@ if ($exists) {
     $base      = $protocol . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
     $resetLink = $base . '/reset-password.php?token=' . urlencode($token);
 
-    $subject = "sgCar â Password Reset Request";
+    $subject = "sgCar  -  Password Reset Request";
     $body    = "Hi,
 
 Click the link below to reset your sgCar password. This link expires in 1 hour.
@@ -61,7 +61,7 @@ Click the link below to reset your sgCar password. This link expires in 1 hour.
 
 If you didn't request this, you can safely ignore this email.
 
-â The sgCar Team";
+ -  The sgCar Team";
     $headers = "From: noreply@sgcar.com
 
 Content-Type: text/plain; charset=UTF-8";

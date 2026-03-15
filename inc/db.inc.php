@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // connects to the database. include this on any page that needs to run queries
 
 $config = parse_ini_file('/var/www/private/db-config.ini');

@@ -60,12 +60,11 @@ $conn->close();
                             <div class="hero-search-card card shadow-lg">
                                 <div class="card-body p-4">
                                     <form action="listings.php" method="get"
-                                          class="row g-3 align-items-end"
+                                          class="row g-2 align-items-center"
                                           aria-label="Car search form">
 
-                                        <div class="col-12 col-md-3">
-                                            <label for="search-brand" class="form-label fw-semibold">Brand</label>
-                                            <select id="search-brand" name="brand" class="form-select">
+                                        <div class="col-6 col-md">
+                                            <select name="brand" class="form-select" aria-label="Brand">
                                                 <option value="">All Brands</option>
                                                 <option>Toyota</option>
                                                 <option>Honda</option>
@@ -80,10 +79,9 @@ $conn->close();
                                             </select>
                                         </div>
 
-                                        <div class="col-12 col-md-3">
-                                            <label for="search-type" class="form-label fw-semibold">Type</label>
-                                            <select id="search-type" name="type" class="form-select">
-                                                <option value="">All Types</option>
+                                        <div class="col-6 col-md">
+                                            <select name="type" class="form-select" aria-label="Vehicle Type">
+                                                <option value="">Vehicle Type</option>
                                                 <option>Sedan</option>
                                                 <option>SUV</option>
                                                 <option>Hatchback</option>
@@ -93,20 +91,33 @@ $conn->close();
                                             </select>
                                         </div>
 
-                                        <div class="col-12 col-md-3">
-                                            <label for="search-budget" class="form-label fw-semibold">Max Budget</label>
-                                            <select id="search-budget" name="max_price" class="form-select">
-                                                <option value="">Any Budget</option>
-                                                <option value="80000">Under $80,000</option>
-                                                <option value="100000">Under $100,000</option>
-                                                <option value="130000">Under $130,000</option>
-                                                <option value="160000">Under $160,000</option>
-                                                <option value="200000">Under $200,000</option>
+                                        <div class="col-6 col-md">
+                                            <select name="min_price" class="form-select" aria-label="Minimum Price">
+                                                <option value="">Min Price</option>
+                                                <option value="30000">S$ 30,000</option>
+                                                <option value="50000">S$ 50,000</option>
+                                                <option value="80000">S$ 80,000</option>
+                                                <option value="100000">S$ 100,000</option>
+                                                <option value="130000">S$ 130,000</option>
+                                                <option value="160000">S$ 160,000</option>
                                             </select>
                                         </div>
 
-                                        <div class="col-12 col-md-3">
-                                            <button type="submit" class="btn btn-sgcar w-100 py-2">
+                                        <div class="col-6 col-md">
+                                            <select name="max_price" class="form-select" aria-label="Maximum Price">
+                                                <option value="">Max Price</option>
+                                                <option value="50000">S$ 50,000</option>
+                                                <option value="80000">S$ 80,000</option>
+                                                <option value="100000">S$ 100,000</option>
+                                                <option value="130000">S$ 130,000</option>
+                                                <option value="160000">S$ 160,000</option>
+                                                <option value="200000">S$ 200,000</option>
+                                                <option value="300000">S$ 300,000</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-12 col-md-auto">
+                                            <button type="submit" class="btn btn-sgcar w-100 px-4 py-2">
                                                 <span class="material-icons btn-icon" aria-hidden="true">search</span>
                                                 Search Cars
                                             </button>
@@ -234,7 +245,7 @@ $conn->close();
                                     <p class="car-card-price">S$ <?= number_format($car['price']) ?></p>
 
                                     <!-- specs row: mileage, transmission, fuel -->
-                                    <div class="car-card-specs" aria-label="Car specifications">
+                                    <div class="car-card-specs" role="region" aria-label="Car specifications">
                                         <span>
                                             <span class="material-icons spec-icon" aria-hidden="true">speed</span>
                                             <?= number_format($car['mileage']) ?> km

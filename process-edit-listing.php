@@ -3,6 +3,8 @@
 session_start();
 $root = "";
 
+include "inc/helpers.inc.php";
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -33,13 +35,19 @@ $transmission = cleanInput($_POST['transmission'] ?? '');
 $fuel_type    = cleanInput($_POST['fuel_type']    ?? '');
 $description  = cleanInput($_POST['description']  ?? '');
 
+// sg-specific optional fields
+$reg_date     = !empty($_POST['reg_date'])     ? $_POST['reg_date']          : null;
+$coe_expiry   = !empty($_POST['coe_expiry'])   ? $_POST['coe_expiry']        : null;
+$engine_cap   = !empty($_POST['engine_cap'])   ? (int)$_POST['engine_cap']   : null;
+$no_of_owners = !empty($_POST['no_of_owners']) ? (int)$_POST['no_of_owners'] : null;
+
 $currentYear = (int)date('Y');
 $errors      = [];
 
 // validate text fields
 if (empty($brand))                              $errors[] = "Brand is required.";
 if (empty($model))                              $errors[] = "Model is required.";
-if ($year < 1990 || $year > $currentYear)       $errors[] = "Please select a valid year.";
+if ($year < 1970 || $year > $currentYear)       $errors[] = "Please select a valid year.";
 if (empty($type))                               $errors[] = "Body type is required.";
 if ($price <= 0)                                $errors[] = "Please enter a valid asking price.";
 if ($mileage < 0)                               $errors[] = "Please enter a valid mileage.";
@@ -49,7 +57,7 @@ if (empty($description))                        $errors[] = "Description is requ
 
 // check if the user uploaded new photos
 $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-$maxFileSize  = 5 * 1024 * 1024;
+$maxFileSize  = 10 * 1024 * 1024;  // 10 mb in bytes
 $validFiles   = [];
 $hasNewFiles  = isset($_FILES['images']) && !empty($_FILES['images']['name'][0]);
 
@@ -72,7 +80,7 @@ if ($hasNewFiles) {
             $fileSize = $_FILES['images']['size'][$i];
 
             if ($fileSize > $maxFileSize) {
-                $errors[] = htmlspecialchars($origName) . " is too large (max 5MB per image).";
+                $errors[] = htmlspecialchars($origName) . " is too large (max 10MB per image).";
                 continue;
             }
 
@@ -86,12 +94,8 @@ if ($hasNewFiles) {
                 continue;
             }
 
-            $ext = match($mime) {
-                'image/jpeg' => 'jpg',
-                'image/png'  => 'png',
-                'image/webp' => 'webp',
-                default      => 'jpg',
-            };
+            $extMap = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+            $ext = $extMap[$mime] ?? 'jpg';
             $newName      = uniqid('car_', true) . '.' . $ext;
             $validFiles[] = ['tmp' => $tmpName, 'name' => $newName];
         }
@@ -125,13 +129,15 @@ $check->close();
 // update the car record
 $stmt = $conn->prepare("
     UPDATE cars
-    SET brand=?, model=?, year=?, price=?, mileage=?, transmission=?, fuel_type=?, type=?, color=?, description=?
+    SET brand=?, model=?, year=?, price=?, mileage=?, transmission=?, fuel_type=?, type=?, color=?, description=?,
+        reg_date=?, coe_expiry=?, engine_cap=?, no_of_owners=?
     WHERE car_id = ? AND user_id = ?
 ");
 $stmt->bind_param(
-    "ssidisssssii",
+    "ssidisssssssiiii",
     $brand, $model, $year, $price, $mileage,
     $transmission, $fuel_type, $type, $color, $description,
+    $reg_date, $coe_expiry, $engine_cap, $no_of_owners,
     $carId, $user_id
 );
 
@@ -197,10 +203,3 @@ header("Location: dashboard.php");
 exit();
 
 
-// helper
-function cleanInput($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}

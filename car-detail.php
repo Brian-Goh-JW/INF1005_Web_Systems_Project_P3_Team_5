@@ -31,6 +31,10 @@ $stmt = $conn->prepare("
         c.description,
         c.status,
         c.created_at,
+        c.reg_date,
+        c.coe_expiry,
+        c.engine_cap,
+        c.no_of_owners,
         u.fname,
         u.lname,
         u.created_at AS member_since
@@ -83,6 +87,18 @@ if ($loggedIn) {
     $saveCheck->execute();
     $isSaved = $saveCheck->get_result()->num_rows > 0;
     $saveCheck->close();
+
+    // check if buyer already sent an enquiry for this car
+    $hasEnquired = false;
+    if (!$isOwner) {
+        $eCheck = $conn->prepare(
+            "SELECT enquiry_id FROM enquiries WHERE car_id = ? AND sender_user_id = ? LIMIT 1"
+        );
+        $eCheck->bind_param("ii", $carId, $currentUserId);
+        $eCheck->execute();
+        $hasEnquired = $eCheck->get_result()->num_rows > 0;
+        $eCheck->close();
+    }
 }
 
 $conn->close();
@@ -90,10 +106,29 @@ $conn->close();
 
 // build display values
 $carTitle    = $car['year'] . ' ' . $car['brand'] . ' ' . $car['model'];
+$brandModel  = htmlspecialchars($car['brand'] . ' ' . $car['model']);
 $pageTitle   = htmlspecialchars($carTitle) . ' — sgCar';
 $sellerName  = htmlspecialchars(trim($car['fname'] . ' ' . $car['lname']));
 $memberSince = date('Y', strtotime($car['member_since']));
 $listedOn    = date('d M Y', strtotime($car['created_at']));
+
+// pre-compute save button state so the html stays clean
+$saveClass = $isSaved ? 'btn-danger' : 'btn-outline-danger';
+$saveIcon  = $isSaved ? 'favorite' : 'favorite_border';
+$saveLabel = $isSaved ? 'Saved' : 'Save Car';
+
+// calculate how much COE is left
+$coeLeft = '';
+if (!empty($car['coe_expiry'])) {
+    $expiry = new DateTime($car['coe_expiry']);
+    $now    = new DateTime();
+    $diff   = $now->diff($expiry);
+    if ($diff->invert) {
+        $coeLeft = 'COE expired';
+    } else {
+        $coeLeft = $diff->y . 'yr ' . $diff->m . 'mth left';
+    }
+}
 
 // main image: first from gallery, or placeholder if no photos uploaded
 $mainImage = !empty($gallery)
@@ -139,7 +174,7 @@ $mainImage = !empty($gallery)
                     <h1 class="h3 fw-bold mb-1"><?= htmlspecialchars($carTitle) ?></h1>
                     <p class="text-muted small mb-3">Listed on <?= $listedOn ?></p>
 
-                    <!-- ---- IMAGE GALLERY ---- -->
+                    <!-- image gallery -->
                     <figure class="mb-0">
                         <img id="mainCarImage"
                              src="<?= $mainImage ?>"
@@ -151,7 +186,7 @@ $mainImage = !empty($gallery)
                             <div class="gallery-thumbs" role="list" aria-label="Car photo thumbnails">
                                 <?php foreach ($gallery as $i => $img): ?>
                                     <img src="<?= htmlspecialchars($img['image_path']) ?>"
-                                         alt="<?= htmlspecialchars($car['brand'] . ' ' . $car['model']) ?> photo <?= $i + 1 ?>"
+                                         alt="<?= $brandModel ?> photo <?= $i + 1 ?>"
                                          class="gallery-thumb<?= $i === 0 ? ' active' : '' ?>"
                                          role="listitem"
                                          tabindex="0">
@@ -166,7 +201,7 @@ $mainImage = !empty($gallery)
                     <!-- end gallery -->
 
 
-                    <!-- ---- DESCRIPTION ---- -->
+                    <!-- description -->
                     <section class="mt-4" aria-label="Seller description">
                         <h2 class="h5 fw-bold mb-2">About This Car</h2>
                         <p class="text-muted" style="line-height:1.8;">
@@ -175,7 +210,7 @@ $mainImage = !empty($gallery)
                     </section>
 
 
-                    <!-- ---- SPECS TABLE ---- -->
+                    <!-- specs table -->
                     <section class="mt-4" aria-label="Car specifications">
                         <h2 class="h5 fw-bold mb-3">Specifications</h2>
                         <div class="table-responsive">
@@ -213,6 +248,35 @@ $mainImage = !empty($gallery)
                                     <tr>
                                         <td>Colour</td>
                                         <td><?= htmlspecialchars($car['color']) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($car['engine_cap'])): ?>
+                                    <tr>
+                                        <td>Engine Cap</td>
+                                        <td><?= number_format($car['engine_cap']) ?> cc</td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($car['no_of_owners'])): ?>
+                                    <tr>
+                                        <td>No. of Owners</td>
+                                        <td><?= $car['no_of_owners'] == 6 ? '6 or more' : $car['no_of_owners'] ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($car['reg_date'])): ?>
+                                    <tr>
+                                        <td>Reg. Date</td>
+                                        <td><?= date('d M Y', strtotime($car['reg_date'])) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($car['coe_expiry'])): ?>
+                                    <tr>
+                                        <td>COE Expiry</td>
+                                        <td>
+                                            <?= date('M Y', strtotime($car['coe_expiry'])) ?>
+                                            <?php if ($coeLeft): ?>
+                                                <span class="text-muted small">(<?= htmlspecialchars($coeLeft) ?>)</span>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -258,11 +322,9 @@ $mainImage = !empty($gallery)
                             <form method="post" action="process-save-car.php" class="mb-3">
                                 <input type="hidden" name="car_id" value="<?= $carId ?>">
                                 <input type="hidden" name="redirect" value="car-detail.php">
-                                <button type="submit" class="btn <?= $isSaved ? 'btn-danger' : 'btn-outline-danger' ?> w-100">
-                                    <span class="material-icons btn-icon" style="font-size:1rem;" aria-hidden="true">
-                                        <?= $isSaved ? 'favorite' : 'favorite_border' ?>
-                                    </span>
-                                    <?= $isSaved ? 'Saved' : 'Save Car' ?>
+                                <button type="submit" class="btn <?= $saveClass ?> w-100">
+                                    <span class="material-icons btn-icon" style="font-size:1rem;" aria-hidden="true"><?= $saveIcon ?></span>
+                                    <?= $saveLabel ?>
                                 </button>
                             </form>
                         <?php elseif (!$loggedIn): ?>
@@ -300,76 +362,67 @@ $mainImage = !empty($gallery)
                         </div>
 
                         <!-- enquiry form -->
-                        <form action="process_enquiry.php" method="post" aria-label="Send enquiry to seller">
+                        <h2 class="h6 fw-bold mb-3">Send an Enquiry</h2>
 
-                            <input type="hidden" name="car_id" value="<?= $carId ?>">
+                        <?php if (!isset($_SESSION['user_id'])): ?>
+                            <p class="text-muted small">
+                                <a href="login.php">Log in</a> to send an enquiry to the seller.
+                            </p>
+                        <?php elseif ((int)$_SESSION['user_id'] === (int)$car['user_id']): ?>
+                            <p class="text-muted small">This is your own listing.</p>
+                        <?php elseif ($hasEnquired): ?>
+                            <div class="text-center py-3">
+                                <span class="material-icons text-success" style="font-size:2.2rem;">chat</span>
+                                <p class="text-muted small mt-2 mb-3">You've already sent an enquiry for this car.</p>
+                                <a href="inbox.php" class="btn btn-sgcar w-100">
+                                    <span class="material-icons btn-icon" aria-hidden="true">forum</span>
+                                    View Conversation
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <form action="process_enquiry.php" method="post" aria-label="Send enquiry to seller">
 
-                            <h2 class="h6 fw-bold mb-3">Send an Enquiry</h2>
+                                <input type="hidden" name="car_id" value="<?= $carId ?>">
 
-                            <!-- show flash messages from a failed submission -->
-                            <?php if (!empty($_SESSION['enquiry_errors'])): ?>
-                                <div class="alert alert-danger alert-sm py-2">
-                                    <ul class="mb-0 ps-3 small">
-                                        <?php foreach ($_SESSION['enquiry_errors'] as $e): ?>
-                                            <li><?= htmlspecialchars($e) ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
+                                <?php if (!empty($_SESSION['enquiry_errors'])): ?>
+                                    <div class="alert alert-danger alert-sm py-2">
+                                        <ul class="mb-0 ps-3 small">
+                                            <?php foreach ($_SESSION['enquiry_errors'] as $e): ?>
+                                                <li><?= htmlspecialchars($e) ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                    <?php unset($_SESSION['enquiry_errors']); ?>
+                                <?php endif; ?>
+
+                                <?php if (!empty($_SESSION['enquiry_success'])): ?>
+                                    <div class="alert alert-success alert-sm py-2 small">
+                                        <?= htmlspecialchars($_SESSION['enquiry_success']) ?>
+                                    </div>
+                                    <?php unset($_SESSION['enquiry_success']); ?>
+                                <?php endif; ?>
+
+                                <div class="mb-3">
+                                    <textarea id="enquiry-msg"
+                                              name="message"
+                                              class="form-control"
+                                              rows="4"
+                                              placeholder="Hi, I'm interested in this car. Is it still available?"
+                                              required
+                                              maxlength="1000"><?= htmlspecialchars($_SESSION['enquiry_data']['message'] ?? '') ?></textarea>
                                 </div>
-                                <?php unset($_SESSION['enquiry_errors']); ?>
-                            <?php endif; ?>
 
-                            <?php if (!empty($_SESSION['enquiry_success'])): ?>
-                                <div class="alert alert-success alert-sm py-2 small">
-                                    <?= htmlspecialchars($_SESSION['enquiry_success']) ?>
+                                <?php unset($_SESSION['enquiry_data']); ?>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-sgcar">
+                                        <span class="material-icons btn-icon" aria-hidden="true">send</span>
+                                        Send Enquiry
+                                    </button>
                                 </div>
-                                <?php unset($_SESSION['enquiry_success']); ?>
-                            <?php endif; ?>
 
-                            <div class="mb-3">
-                                <label for="enquiry-name" class="form-label">Your Name</label>
-                                <input type="text"
-                                       id="enquiry-name"
-                                       name="sender_name"
-                                       class="form-control"
-                                       placeholder="e.g. Sarah Lim"
-                                       required
-                                       maxlength="45"
-                                       value="<?= htmlspecialchars($_SESSION['enquiry_data']['sender_name'] ?? '') ?>">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="enquiry-email" class="form-label">Email Address</label>
-                                <input type="email"
-                                       id="enquiry-email"
-                                       name="sender_email"
-                                       class="form-control"
-                                       placeholder="you@email.com"
-                                       required
-                                       maxlength="100"
-                                       value="<?= htmlspecialchars($_SESSION['enquiry_data']['sender_email'] ?? '') ?>">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="enquiry-msg" class="form-label">Message</label>
-                                <textarea id="enquiry-msg"
-                                          name="message"
-                                          class="form-control"
-                                          rows="4"
-                                          placeholder="Hi, I'm interested in this car. Is it still available?"
-                                          required
-                                          maxlength="1000"><?= htmlspecialchars($_SESSION['enquiry_data']['message'] ?? '') ?></textarea>
-                            </div>
-
-                            <?php unset($_SESSION['enquiry_data']); ?>
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-sgcar">
-                                    <span class="material-icons btn-icon" aria-hidden="true">send</span>
-                                    Send Enquiry
-                                </button>
-                            </div>
-
-                        </form>
+                            </form>
+                        <?php endif; ?>
                         <!-- end enquiry form -->
 
                     </div>

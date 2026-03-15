@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // shows all registered users. admins can promote users to admin or demote them back
 session_start();
 $root      = "../";
@@ -112,7 +112,7 @@ $conn->close();
                                                 <td class="align-middle text-muted small"><?= htmlspecialchars($user['email']) ?></td>
                                                 <td class="align-middle">
                                                     <?php if ($user['role'] === 'admin'): ?>
-                                                        <span class="badge" style="background-color:var(--sgcar-red)">Admin</span>
+                                                        <span class="badge" style="background-color:var(--sgcar-red-dark)">Admin</span>
                                                     <?php else: ?>
                                                         <span class="badge bg-light text-dark border">User</span>
                                                     <?php endif; ?>

@@ -1,5 +1,16 @@
-﻿<?php
+<?php
 // handles the login form. checks the email and password against the database, then starts a session
+// set session lifetime before session_start so remember me takes effect
+// gc_maxlifetime controls how long the server keeps the session file
+// session_set_cookie_params controls how long the browser keeps the cookie
+// both must match or the server will delete the session before the cookie expires
+if (!empty($_POST['remember_me'])) {
+    $lifetime = 30 * 24 * 60 * 60; // 30 days
+} else {
+    $lifetime = 2 * 60 * 60; // 2 hours for normal login
+}
+ini_set('session.gc_maxlifetime', $lifetime);
+session_set_cookie_params($lifetime);
 session_start();
 $root = "";
 
@@ -62,7 +73,6 @@ if (!password_verify($pwd, $user['password'])) {
 
 // login ok — set up the session
 
-// regenerate the session id to prevent session fixation attacks
 session_regenerate_id(true);
 
 $_SESSION['user_id'] = $user['user_id'];

@@ -5,11 +5,12 @@
 :root {
     --sgcar-red:        #e63946;
     --sgcar-red-dark:   #c1121f;
+    --sgcar-red-nav:    #f04e5a;
     --sgcar-dark:       #1a1a2e;
     --sgcar-dark-2:     #16213e;
     --sgcar-grey:       #f4f4f8;
     --sgcar-text:       #2d2d2d;
-    --sgcar-muted:      #6c757d;
+    --sgcar-muted:      #545d65;
     --transition:       0.2s ease;
 }
 
@@ -47,14 +48,14 @@ body {
     border-radius: 3px;
 }
 
-/* Reusable section heading style */
+/* reusable section heading style */
 .section-title {
     font-weight: 700;
     font-size: 1.6rem;
     color: var(--sgcar-dark);
 }
 
-/* Reusable icon alignment helper for Material Icons next to text */
+/* reusable icon alignment helper for Material Icons next to text */
 .btn-icon {
     font-size: 1.1rem;
     vertical-align: middle;
@@ -77,11 +78,11 @@ body {
 
 .sgcar-navbar .nav-link:hover,
 .sgcar-navbar .nav-link.active {
-    color: var(--sgcar-red) !important;
+    color: var(--sgcar-red-nav) !important;
 }
 
-/* The "sg" is red, "Car" is white — the logo effect */
-.brand-sg  { color: var(--sgcar-red); font-weight: 800; font-size: 1.6rem; }
+/* the "sg" is red, "Car" is white — the logo effect */
+.brand-sg  { color: var(--sgcar-red-nav); font-weight: 800; font-size: 1.6rem; }
 .brand-car { color: #ffffff;          font-weight: 800; font-size: 1.6rem; }
 
 .nav-icon {
@@ -90,9 +91,119 @@ body {
     margin-right: 3px;
 }
 
-/* Our custom red CTA button used in the nav and elsewhere */
+/* unread inbox badge */
+@keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+    60%       { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+}
+.nav-badge {
+    position: absolute;
+    top: 2px;
+    right: -4px;
+    background: var(--sgcar-red);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    border: 2px solid var(--sgcar-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    animation: badge-pulse 1.8s ease-in-out infinite;
+}
+
+/* chat layout */
+.chat-list {
+    width: 280px;
+    min-width: 220px;
+    overflow-y: auto;
+    background: #fff;
+}
+.chat-list-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    border-left: 3px solid transparent;
+    transition: background 0.15s;
+}
+.chat-list-item:hover {
+    background: #f8f9fa;
+}
+.chat-list-item.active {
+    background: #fff5f5;
+    border-left-color: var(--sgcar-red);
+}
+.chat-role-badge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.badge-seller { background: #e0e7ff; color: #3730a3; }
+.badge-buyer  { background: #dcfce7; color: #15803d; }
+
+/* red dot for unanswered enquiries */
+.chat-unread-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sgcar-red);
+    flex-shrink: 0;
+}
+.chat-list-item.unread { background: #fff5f5; }
+.chat-list-item.unread.active { background: #ffe8e8; }
+
+.chat-thread {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.chat-thread-header {
+    flex-shrink: 0;
+}
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+.chat-reply-area {
+    flex-shrink: 0;
+    background: #fff;
+}
+
+/* chat bubbles */
+.chat-sent {
+    background: var(--sgcar-red-dark);
+    color: #fff;
+    border-radius: 18px 18px 4px 18px;
+    padding: 10px 14px;
+    max-width: 75%;
+}
+.chat-received {
+    background: #f1f3f5;
+    color: var(--sgcar-dark);
+    border-radius: 18px 18px 18px 4px;
+    padding: 10px 14px;
+    max-width: 75%;
+}
+.chat-time {
+    font-size: 0.68rem;
+    opacity: 0.65;
+    margin-top: 4px;
+}
+.chat-sent .chat-time {
+    color: #ffffff;
+    opacity: 1;
+}
+
+/* our custom red CTA button used in the nav and elsewhere */
 .btn-sgcar {
-    background-color: var(--sgcar-red);
+    background-color: var(--sgcar-red-dark);
     color: #ffffff !important;
     border: none;
     border-radius: 6px;
@@ -135,7 +246,7 @@ body {
     margin-bottom: 2rem;
 }
 
-/* The white search card that floats over the hero */
+/* the white search card that floats over the hero */
 .hero-search-card {
     background: #ffffff;
     border: none;
@@ -154,7 +265,7 @@ body {
     background-color: var(--sgcar-grey);
 }
 
-/* CSS Grid auto-layout: as many columns as fit, each at least 100px */
+/* cSS Grid auto-layout: as many columns as fit, each at least 100px */
 .brands-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -237,7 +348,7 @@ body {
     transform: translateY(-4px);
 }
 
-/* Image wrapper — keeps the image a fixed height and allows the badge overlay */
+/* image wrapper — keeps the image a fixed height and allows the badge overlay */
 .car-card-img-wrap {
     position: relative;
     overflow: hidden;
@@ -254,7 +365,7 @@ body {
     transform: scale(1.04);
 }
 
-/* The "SUV / Sedan / Hatchback" badge in the top-right of the image */
+/* the "SUV / Sedan / Hatchback" badge in the top-right of the image */
 .car-type-badge {
     position: absolute;
     top: 10px;
@@ -282,7 +393,7 @@ body {
     margin-bottom: 0.75rem;
 }
 
-/* The three spec pills: mileage | transmission | fuel */
+/* the three spec pills: mileage | transmission | fuel */
 .car-card-specs {
     display: flex;
     flex-wrap: wrap;
@@ -314,7 +425,7 @@ body {
 
 .how-step { padding: 1rem; }
 
-/* Circular icon with a step number badge on top-right */
+/* circular icon with a step number badge on top-right */
 .how-icon-wrap {
     position: relative;
     display: inline-block;
@@ -379,6 +490,15 @@ body {
 .cta-subtitle { color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; margin-bottom: 0; }
 
 
+/* breadcrumb links */
+.breadcrumb-item a {
+    color: #0a4fa8;
+}
+.breadcrumb-item a:hover {
+    color: #083d82;
+}
+
+
 /* --- listings page filter sidebar and grid --- */
 .filter-sidebar {
     background: #ffffff;
@@ -387,7 +507,7 @@ body {
     padding: 1.5rem;
 }
 
-.filter-sidebar h6 {
+.filter-label {
     font-weight: 700;
     font-size: 0.8rem;
     text-transform: uppercase;
@@ -398,7 +518,7 @@ body {
 
 .filter-divider { border-color: #e5e7eb; }
 
-/* Mobile: show/hide filter panel toggle */
+/* mobile: show/hide filter panel toggle */
 .filter-toggle-btn {
     display: none;
 }
@@ -407,7 +527,7 @@ body {
     .filter-sidebar.collapsed { display: none; }
 }
 
-/* Sort bar above the listings grid */
+/* sort bar above the listings grid */
 .listings-sort-bar {
     display: flex;
     justify-content: space-between;
@@ -425,7 +545,7 @@ body {
 
 /* --- car detail page --- */
 
-/* Main large image */
+/* main large image */
 .gallery-main-img {
     width: 100%;
     height: 400px;
@@ -434,7 +554,7 @@ body {
     display: block;
 }
 
-/* Thumbnail strip below the main image */
+/* thumbnail strip below the main image */
 .gallery-thumbs {
     display: flex;
     gap: 0.5rem;
@@ -443,7 +563,7 @@ body {
     padding-bottom: 4px;
 }
 
-/* Each clickable thumbnail */
+/* each clickable thumbnail */
 .gallery-thumb {
     width: 80px;
     height: 60px;
@@ -461,7 +581,7 @@ body {
     opacity: 1;
 }
 
-/* Specs table on the detail page */
+/* specs table on the detail page */
 .specs-table td:first-child {
     font-weight: 600;
     color: var(--sgcar-muted);
@@ -474,7 +594,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* The sticky price + action card on the right */
+/* the sticky price + action card on the right */
 .price-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -605,7 +725,7 @@ body {
 
 /* --- admin panel --- */
 
-/* Left sidebar — dark background, Bootstrap list-group items styled white */
+/* left sidebar — dark background, Bootstrap list-group items styled white */
 .admin-sidebar .list-group-item {
     background: var(--sgcar-dark);
     color: rgba(255, 255, 255, 0.75);
@@ -614,21 +734,26 @@ body {
     padding: 0.65rem 1.25rem;
     transition: color var(--transition), background-color var(--transition);
 }
-.admin-sidebar .list-group-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
+.admin-sidebar .list-group-item:hover,
+.admin-sidebar .list-group-item-action:hover,
+.admin-sidebar .list-group-item-action:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
 }
 .admin-sidebar .list-group-item.active {
-    background: var(--sgcar-red);
-    border-color: var(--sgcar-red);
+    background: var(--sgcar-red-dark);
+    border-color: var(--sgcar-red-dark);
     color: #ffffff;
+}
+.admin-sidebar .list-group-item.text-muted {
+    color: rgba(255, 255, 255, 0.65) !important;
 }
 .admin-sidebar .list-group-item .material-icons {
     font-size: 1.1rem;
     vertical-align: middle;
 }
 
-/* Admin data tables — tighter and cleaner than the default Bootstrap table */
+/* admin data tables — tighter and cleaner than the default Bootstrap table */
 .admin-table th {
     font-size: 0.8rem;
     text-transform: uppercase;

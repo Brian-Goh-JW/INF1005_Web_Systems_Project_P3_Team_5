@@ -36,9 +36,6 @@ $conn->close();
 
 if ($affected > 0) {
     $_SESSION['dash_success'] = "Your listing has been removed.";
-} else {
-    // either the car doesn't exist or it belongs to a different user — fail silently
-    $_SESSION['dash_success'] = "";
 }
 
 header("Location: dashboard.php");

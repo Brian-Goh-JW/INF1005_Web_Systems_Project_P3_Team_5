@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // shows all listings. admins can toggle the status between available and sold, or delete a listing
 session_start();
 $root      = "../";

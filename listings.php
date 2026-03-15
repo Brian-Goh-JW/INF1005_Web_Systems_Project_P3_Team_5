@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // shows the browse cars page. reads filter values from the url and queries matching available listings
 session_start();
 $root      = "";
@@ -9,6 +9,7 @@ $filter_brand = isset($_GET['brand'])        ? trim($_GET['brand'])        : '';
 $filter_type  = isset($_GET['type'])         ? trim($_GET['type'])         : '';
 $filter_trans = isset($_GET['transmission']) ? trim($_GET['transmission']) : '';
 $filter_fuel  = isset($_GET['fuel'])         ? trim($_GET['fuel'])         : '';
+$filter_min   = isset($_GET['min_price'])    ? (int)$_GET['min_price']     : 0;
 $filter_max   = isset($_GET['max_price'])    ? (int)$_GET['max_price']     : 0;
 $filter_sort  = isset($_GET['sort'])         ? trim($_GET['sort'])         : 'newest';
 $filter_min_year    = isset($_GET['min_year'])     ? (int)$_GET['min_year']     : 0;
@@ -42,6 +43,11 @@ if ($filter_fuel !== '') {
     $conditions[] = "c.fuel_type = ?";
     $types       .= "s";
     $params[]     = $filter_fuel;
+}
+if ($filter_min > 0) {
+    $conditions[] = "c.price >= ?";
+    $types       .= "i";
+    $params[]     = $filter_min;
 }
 if ($filter_max > 0) {
     $conditions[] = "c.price <= ?";
@@ -166,8 +172,8 @@ function keepChecked($val, $filter) {
                     <div id="filterSidebar" class="filter-sidebar">
 
                         <form method="get" action="listings.php" aria-label="Filter cars">
-                            <h6>Brand</h6>
-                            <select name="brand" class="form-select form-select-sm mb-3">
+                            <p class="filter-label">Brand</p>
+                            <select name="brand" class="form-select form-select-sm mb-3" aria-label="Brand">
                                 <option value="">All Brands</option>
                                 <?php foreach (['Toyota','Honda','BMW','Mercedes-Benz','Mazda','Hyundai','Volkswagen','Subaru','Mitsubishi','Kia','Nissan','Audi','Porsche','Lexus','Ford','Other'] as $b): ?>
                                     <option <?= keepSelected($b, $filter_brand) ?>><?= htmlspecialchars($b) ?></option>
@@ -175,8 +181,8 @@ function keepChecked($val, $filter) {
                             </select>
 
                             <hr class="filter-divider">
-                            <h6>Body Type</h6>
-                            <select name="type" class="form-select form-select-sm mb-3">
+                            <p class="filter-label">Body Type</p>
+                            <select name="type" class="form-select form-select-sm mb-3" aria-label="Body Type">
                                 <option value="">All Types</option>
                                 <?php foreach (['Sedan','SUV','Hatchback','MPV','Coupe','Electric','Others'] as $t): ?>
                                     <option <?= keepSelected($t, $filter_type) ?>><?= htmlspecialchars($t) ?></option>
@@ -184,7 +190,7 @@ function keepChecked($val, $filter) {
                             </select>
 
                             <hr class="filter-divider">
-                            <h6>Transmission</h6>
+                            <p class="filter-label">Transmission</p>
                             <div class="d-flex flex-column gap-1 mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="transmission" id="trans-any" value="" <?= keepChecked('', $filter_trans) ?>>
@@ -201,8 +207,8 @@ function keepChecked($val, $filter) {
                             </div>
 
                             <hr class="filter-divider">
-                            <h6>Fuel Type</h6>
-                            <select name="fuel" class="form-select form-select-sm mb-3">
+                            <p class="filter-label">Fuel Type</p>
+                            <select name="fuel" class="form-select form-select-sm mb-3" aria-label="Fuel Type">
                                 <option value="">All Fuel Types</option>
                                 <?php foreach (['Petrol','Diesel','Electric','Hybrid'] as $f): ?>
                                     <option <?= keepSelected($f, $filter_fuel) ?>><?= htmlspecialchars($f) ?></option>
@@ -210,33 +216,42 @@ function keepChecked($val, $filter) {
                             </select>
 
                             <hr class="filter-divider">
-                            <h6>Max Budget</h6>
-                            <select name="max_price" class="form-select form-select-sm mb-3">
-                                <option value="">Any Budget</option>
-                                <?php
-                                $budgets = [80000, 100000, 130000, 160000, 200000];
-                                foreach ($budgets as $val): ?>
-                                    <option value="<?= $val ?>" <?= ($filter_max === $val) ? 'selected' : '' ?>>
-                                        Under S$ <?= number_format($val) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <p class="filter-label">Max Budget</p>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="text-muted">Any</small>
+                                    <small id="price-label" class="fw-semibold">
+                                        <?= $filter_max > 0 ? 'S$ ' . number_format($filter_max) : 'Any' ?>
+                                    </small>
+                                </div>
+                                <!-- hidden input carries the value on form submit -->
+                                <input type="hidden" name="max_price" id="max_price_input"
+                                       value="<?= $filter_max > 0 ? $filter_max : 0 ?>">
+                                <input type="range" class="form-range" id="price_slider"
+                                       aria-label="Maximum budget"
+                                       min="0" max="300000" step="10000"
+                                       value="<?= $filter_max > 0 ? $filter_max : 0 ?>">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">S$ 0</small>
+                                    <small class="text-muted">S$ 300k</small>
+                                </div>
+                            </div>
 
                             <hr class="filter-divider">
-                            <h6>Year</h6>
+                            <p class="filter-label">Year</p>
                             <div class="row g-1 mb-3">
                                 <div class="col-6">
-                                    <select name="min_year" class="form-select form-select-sm">
+                                    <select name="min_year" class="form-select form-select-sm" aria-label="Year From">
                                         <option value="">From</option>
-                                        <?php for ($y = date('Y'); $y >= 2005; $y--): ?>
+                                        <?php for ($y = date('Y'); $y >= 1970; $y--): ?>
                                             <option value="<?= $y ?>" <?= ($filter_min_year === $y) ? 'selected' : '' ?>><?= $y ?></option>
                                         <?php endfor; ?>
                                     </select>
                                 </div>
                                 <div class="col-6">
-                                    <select name="max_year" class="form-select form-select-sm">
+                                    <select name="max_year" class="form-select form-select-sm" aria-label="Year To">
                                         <option value="">To</option>
-                                        <?php for ($y = date('Y'); $y >= 2005; $y--): ?>
+                                        <?php for ($y = date('Y'); $y >= 1970; $y--): ?>
                                             <option value="<?= $y ?>" <?= ($filter_max_year === $y) ? 'selected' : '' ?>><?= $y ?></option>
                                         <?php endfor; ?>
                                     </select>
@@ -244,17 +259,25 @@ function keepChecked($val, $filter) {
                             </div>
 
                             <hr class="filter-divider">
-                            <h6>Max Mileage</h6>
-                            <select name="max_mileage" class="form-select form-select-sm mb-3">
-                                <option value="">Any Mileage</option>
-                                <?php
-                                $mileages = [10000, 30000, 50000, 80000, 100000];
-                                foreach ($mileages as $val): ?>
-                                    <option value="<?= $val ?>" <?= ($filter_max_mileage === $val) ? 'selected' : '' ?>>
-                                        Under <?= number_format($val) ?> km
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <p class="filter-label">Max Mileage</p>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="text-muted">Any</small>
+                                    <small id="mileage-label" class="fw-semibold">
+                                        <?= $filter_max_mileage > 0 ? number_format($filter_max_mileage) . ' km' : 'Any' ?>
+                                    </small>
+                                </div>
+                                <input type="hidden" name="max_mileage" id="max_mileage_input"
+                                       value="<?= $filter_max_mileage > 0 ? $filter_max_mileage : 0 ?>">
+                                <input type="range" class="form-range" id="mileage_slider"
+                                       aria-label="Maximum mileage"
+                                       min="0" max="200000" step="5000"
+                                       value="<?= $filter_max_mileage > 0 ? $filter_max_mileage : 0 ?>">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">0 km</small>
+                                    <small class="text-muted">200k km</small>
+                                </div>
+                            </div>
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-sgcar">Apply Filters</button>
@@ -278,7 +301,7 @@ function keepChecked($val, $filter) {
 
                         <form method="get" action="listings.php" class="d-flex align-items-center gap-2">
                             <!-- carry active filters forward when sort changes -->
-                            <?php foreach (['brand'=>$filter_brand,'type'=>$filter_type,'transmission'=>$filter_trans,'fuel'=>$filter_fuel,'max_price'=>$filter_max,'min_year'=>$filter_min_year,'max_year'=>$filter_max_year,'max_mileage'=>$filter_max_mileage] as $k=>$v): ?>
+                            <?php foreach (['brand'=>$filter_brand,'type'=>$filter_type,'transmission'=>$filter_trans,'fuel'=>$filter_fuel,'min_price'=>$filter_min,'max_price'=>$filter_max,'min_year'=>$filter_min_year,'max_year'=>$filter_max_year,'max_mileage'=>$filter_max_mileage] as $k=>$v): ?>
                                 <?php if ($v): ?><input type="hidden" name="<?= $k ?>" value="<?= htmlspecialchars($v) ?>"><?php endif; ?>
                             <?php endforeach; ?>
 
@@ -322,7 +345,7 @@ function keepChecked($val, $filter) {
                                                 <?= htmlspecialchars($car['year'] . ' ' . $car['brand'] . ' ' . $car['model']) ?>
                                             </h2>
                                             <p class="car-card-price">S$ <?= number_format($car['price']) ?></p>
-                                            <div class="car-card-specs" aria-label="Car specifications">
+                                            <div class="car-card-specs" role="region" aria-label="Car specifications">
                                                 <span>
                                                     <span class="material-icons spec-icon" aria-hidden="true">speed</span>
                                                     <?= number_format($car['mileage']) ?> km
@@ -357,6 +380,23 @@ function keepChecked($val, $filter) {
     </main>
 
     <?php include "inc/footer.inc.php"; ?>
+
+<script>
+// initialises a range slider: updates the label and hidden input on change
+function initSlider(sliderId, inputId, labelId, fmt) {
+    const slider = document.getElementById(sliderId);
+    const input  = document.getElementById(inputId);
+    const label  = document.getElementById(labelId);
+    slider.addEventListener('input', function () {
+        const val = parseInt(this.value);
+        label.textContent = val === 0 ? 'Any' : fmt(val);
+        input.value = val;
+    });
+}
+
+initSlider('price_slider',   'max_price_input',   'price-label',   v => 'S$ ' + v.toLocaleString());
+initSlider('mileage_slider', 'max_mileage_input', 'mileage-label', v => v.toLocaleString() + ' km');
+</script>
 
 </body>
 </html>

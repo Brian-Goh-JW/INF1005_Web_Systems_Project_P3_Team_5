@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // shows the admin dashboard. pulls platform stats and the 10 most recent enquiries
 session_start();
 $root      = "../";

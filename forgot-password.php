@@ -2,7 +2,7 @@
 // shows the forgot password form. users enter their email to receive a password reset link
 session_start();
 $root      = "";
-$pageTitle = "Forgot Password â sgCar";
+$pageTitle = "Forgot Password  -  sgCar";
 
 // already logged in, no need to be here
 if (isset($_SESSION['user_id'])) {

@@ -18,7 +18,8 @@ include "inc/db.inc.php";
 
 // fetch the car and verify ownership in one query
 $stmt = $conn->prepare("
-    SELECT car_id, brand, model, year, type, color, price, mileage, transmission, fuel_type, description
+    SELECT car_id, brand, model, year, type, color, price, mileage, transmission, fuel_type, description,
+           reg_date, coe_expiry, engine_cap, no_of_owners
     FROM cars
     WHERE car_id = ? AND user_id = ? AND status != 'removed'
     LIMIT 1
@@ -157,7 +158,7 @@ $currentYear = (int)date('Y');
                                         <label for="year" class="form-label">Year <span class="text-danger">*</span></label>
                                         <select id="year" name="year" class="form-select" required>
                                             <option value="">Select year</option>
-                                            <?php for ($y = $currentYear; $y >= 1990; $y--):
+                                            <?php for ($y = $currentYear; $y >= 1970; $y--):
                                                 $sel = ((int)$val('year') === $y) ? 'selected' : '';
                                             ?>
                                                 <option value="<?= $y ?>" <?= $sel ?>><?= $y ?></option>
@@ -256,6 +257,55 @@ $currentYear = (int)date('Y');
                                         </select>
                                     </div>
 
+                                    <!-- sg-specific fields -->
+                                    <div class="col-12 col-md-6">
+                                        <label for="reg_date" class="form-label">Registration Date</label>
+                                        <input type="date"
+                                               id="reg_date"
+                                               name="reg_date"
+                                               class="form-control"
+                                               value="<?= htmlspecialchars($val('reg_date')) ?>">
+                                        <div class="form-text">When the car was first registered in Singapore.</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="coe_expiry" class="form-label">COE Expiry Date</label>
+                                        <input type="date"
+                                               id="coe_expiry"
+                                               name="coe_expiry"
+                                               class="form-control"
+                                               value="<?= htmlspecialchars($val('coe_expiry')) ?>">
+                                        <div class="form-text">Leave blank if not applicable (e.g. electric cars).</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="engine_cap" class="form-label">Engine Capacity (cc)</label>
+                                        <div class="input-group">
+                                            <input type="number"
+                                                   id="engine_cap"
+                                                   name="engine_cap"
+                                                   class="form-control"
+                                                   placeholder="e.g. 1598"
+                                                   min="0"
+                                                   max="9999"
+                                                   value="<?= htmlspecialchars($val('engine_cap')) ?>">
+                                            <span class="input-group-text">cc</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label for="no_of_owners" class="form-label">No. of Owners</label>
+                                        <select id="no_of_owners" name="no_of_owners" class="form-select">
+                                            <option value="">Select</option>
+                                            <?php foreach ([1,2,3,4,5] as $n):
+                                                $sel = ((int)$val('no_of_owners') === $n) ? 'selected' : '';
+                                            ?>
+                                                <option value="<?= $n ?>" <?= $sel ?>><?= $n ?></option>
+                                            <?php endforeach; ?>
+                                            <option value="6" <?= ((int)$val('no_of_owners') === 6) ? 'selected' : '' ?>>6 or more</option>
+                                        </select>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -311,7 +361,7 @@ $currentYear = (int)date('Y');
                                     <div class="form-text">The first image will be the cover photo.</div>
                                 </div>
 
-                                <div id="imagePreview" class="image-preview-grid" aria-label="Selected photo previews"></div>
+                                <div id="imagePreview" class="image-preview-grid" role="region" aria-label="Selected photo previews"></div>
 
                             </div>
                         </div>

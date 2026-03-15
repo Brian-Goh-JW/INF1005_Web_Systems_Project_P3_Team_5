@@ -1,7 +1,9 @@
-﻿<?php
+<?php
 // handles the registration form. validates the inputs and creates a new user account
 session_start();
 $root = "";
+
+include "inc/helpers.inc.php";
 
 // only accepts post requests. rejects anyone visiting this url directly
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -111,12 +113,3 @@ header("Location: login.php");
 exit();
 
 
-// helper
-
-// cleans a text value. trims whitespace, strips backslashes, and encodes special chars to block xss
-function cleanInput($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}

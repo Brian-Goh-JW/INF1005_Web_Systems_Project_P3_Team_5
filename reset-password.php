@@ -2,7 +2,7 @@
 // shows the reset password form. validates the token from the url before displaying
 session_start();
 $root      = "";
-$pageTitle = "Reset Password â sgCar";
+$pageTitle = "Reset Password  -  sgCar";
 
 $token = trim($_GET['token'] ?? '');
 $valid = false;

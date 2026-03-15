@@ -82,6 +82,11 @@ unset($_SESSION['errors'], $_SESSION['success']);
                                autocomplete="current-password">
                     </div>
 
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me" value="1">
+                        <label class="form-check-label small text-muted" for="remember_me">Remember me</label>
+                    </div>
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-sgcar btn-lg">Sign In</button>
                     </div>

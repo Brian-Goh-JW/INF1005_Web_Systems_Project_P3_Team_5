@@ -1,7 +1,9 @@
-﻿<?php
+<?php
 // handles the post-a-listing form. validates the text fields, checks uploaded images, and saves everything to the database
 session_start();
 $root = "";
+
+include "inc/helpers.inc.php";
 
 // make sure the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -29,13 +31,19 @@ $transmission = cleanInput($_POST['transmission'] ?? '');
 $fuel_type    = cleanInput($_POST['fuel_type']    ?? '');
 $description  = cleanInput($_POST['description']  ?? '');
 
+// sg-specific optional fields
+$reg_date     = !empty($_POST['reg_date'])     ? $_POST['reg_date']          : null;
+$coe_expiry   = !empty($_POST['coe_expiry'])   ? $_POST['coe_expiry']        : null;
+$engine_cap   = !empty($_POST['engine_cap'])   ? (int)$_POST['engine_cap']   : null;
+$no_of_owners = !empty($_POST['no_of_owners']) ? (int)$_POST['no_of_owners'] : null;
+
 $currentYear  = (int)date('Y');
 $errors       = [];
 
 // validate the text fields
 if (empty($brand))                              $errors[] = "Brand is required.";
 if (empty($model))                              $errors[] = "Model is required.";
-if ($year < 1990 || $year > $currentYear)       $errors[] = "Please select a valid year.";
+if ($year < 1970 || $year > $currentYear)       $errors[] = "Please select a valid year.";
 if (empty($type))                               $errors[] = "Body type is required.";
 if ($price <= 0)                                $errors[] = "Please enter a valid asking price.";
 if ($mileage < 0)                               $errors[] = "Please enter a valid mileage.";
@@ -45,7 +53,7 @@ if (empty($description))                        $errors[] = "Description is requ
 
 // validate the uploaded images
 $allowedMimes  = ['image/jpeg', 'image/png', 'image/webp'];
-$maxFileSize   = 5 * 1024 * 1024;   // 5 mb in bytes.
+$maxFileSize   = 10 * 1024 * 1024;  // 10 mb in bytes
 $validFiles    = [];                 // files that passed all checks.
 
 $hasFiles = isset($_FILES['images']) && !empty($_FILES['images']['name'][0]);
@@ -75,7 +83,7 @@ if (!$hasFiles) {
 
             // size check
             if ($fileSize > $maxFileSize) {
-                $errors[] = htmlspecialchars($origName) . " is too large (max 5MB per image).";
+                $errors[] = htmlspecialchars($origName) . " is too large (max 10MB per image).";
                 continue;
             }
 
@@ -90,12 +98,8 @@ if (!$hasFiles) {
             }
 
             // random unique filename so nothing gets overwritten and names cannot be guessed
-            $ext = match($mime) {
-                'image/jpeg' => 'jpg',
-                'image/png'  => 'png',
-                'image/webp' => 'webp',
-                default      => 'jpg',
-            };
+            $extMap = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+            $ext = $extMap[$mime] ?? 'jpg';
             $newName = uniqid('car_', true) . '.' . $ext;
 
             $validFiles[] = ['tmp' => $tmpName, 'name' => $newName];
@@ -120,16 +124,18 @@ include "inc/db.inc.php";
 
 $stmt = $conn->prepare(
     "INSERT INTO cars
-        (user_id, brand, model, year, price, mileage, transmission, fuel_type, type, color, description)
+        (user_id, brand, model, year, price, mileage, transmission, fuel_type, type, color, description,
+         reg_date, coe_expiry, engine_cap, no_of_owners)
      VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 );
 // type string: i=int, s=string, d=float
 $stmt->bind_param(
-    "issidisssss",
+    "issidisssssssii",
     $user_id, $brand, $model, $year,
     $price, $mileage,
-    $transmission, $fuel_type, $type, $color, $description
+    $transmission, $fuel_type, $type, $color, $description,
+    $reg_date, $coe_expiry, $engine_cap, $no_of_owners
 );
 
 if (!$stmt->execute()) {
@@ -174,10 +180,3 @@ header("Location: car-detail.php?id=" . $carId);
 exit();
 
 
-// helper
-function cleanInput($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
